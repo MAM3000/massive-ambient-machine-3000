@@ -24,6 +24,7 @@
 
   /* header */
   header{
+    position:fixed;top:0;left:0;right:0;z-index:100;
     border-bottom:var(--bw) solid var(--sep);
     padding:14px 22px;
     display:flex;align-items:center;justify-content:space-between;
@@ -42,7 +43,7 @@
   header .meta{color:var(--t2);font-size:10px;letter-spacing:0.14em;}
 
   /* layout */
-  main{max-width:1240px;margin:0 auto;padding:18px 22px;}
+  main{max-width:1240px;margin:0 auto;padding:18px 22px;padding-top:68px;}
   .row{display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap;}
   .col{flex:1;min-width:0;}
   section{
@@ -164,12 +165,24 @@
     position:fixed;left:0;right:0;bottom:0;
     border-top:var(--bw) solid var(--sep);
     background:var(--bg0);
-    padding:12px 22px;
-    display:flex;align-items:center;justify-content:space-between;
-    gap:14px;
+    padding:10px 22px 8px;
+    display:flex;flex-direction:column;
+    gap:7px;
   }
-  footer > .fstatus{flex:1;}
-  footer > .fstatus:last-of-type{text-align:right;}
+  .footer-main{display:flex;align-items:center;justify-content:space-between;gap:14px;}
+  .footer-main > .fstatus{flex:1;}
+  .footer-main > .fstatus:last-of-type{text-align:right;}
+  .footer-shortcuts{
+    display:flex;align-items:center;justify-content:center;
+    gap:14px;flex-wrap:wrap;
+  }
+  .fsc{display:inline-flex;align-items:center;gap:5px;color:var(--t2);font-size:9px;letter-spacing:0.12em;}
+  .fsc kbd{
+    display:inline-flex;align-items:center;justify-content:center;
+    min-width:16px;height:15px;padding:0 4px;
+    border:0.5px solid var(--t2);border-radius:2px;
+    color:var(--t1);font-size:9px;font-family:inherit;letter-spacing:0;
+  }
   .fbtn{
     height:30px;padding:0 18px;
     border:0.5px solid var(--sep);background:var(--bg1);border-radius:2px;
@@ -184,6 +197,27 @@
 
   .sm{font-size:9px;color:var(--t2);letter-spacing:0.16em;}
   .accv{color:var(--acc);}
+
+  /* compat warning */
+  #compatWarn{
+    position:fixed;inset:0;z-index:9999;
+    background:var(--bg0);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:18px;padding:40px;text-align:center;
+  }
+  #compatWarn h2{color:var(--t0);font-size:13px;letter-spacing:0.22em;font-weight:400;}
+  #compatWarn p{color:var(--t1);font-size:10px;letter-spacing:0.16em;max-width:400px;line-height:1.8;}
+
+  /* mobile */
+  @media(max-width:800px){
+    .layers{grid-template-columns:repeat(2,1fr);}
+    .pgrid{grid-template-columns:repeat(2,1fr) !important;}
+    input[type=range]{height:28px;}
+    .lslitem{grid-template-columns:40px 1fr 26px;}
+    header{padding:10px 14px;}
+    main{padding:14px;padding-top:62px;}
+    footer{padding:8px 14px 6px;}
+  }
 </style>
 </head>
 <body>
@@ -194,7 +228,7 @@
     <div class="name lower">massive ambient machine 3000</div>
   </div>
   <div class="title lower" style="display:flex;align-items:center;gap:10px;">
-    <svg width="32" height="20" viewBox="0 0 32 20" fill="#ff616b" stroke="none" aria-hidden="true">
+    <svg id="dogSvg" width="32" height="20" viewBox="0 0 32 20" fill="#dcdcdc" stroke="none" aria-hidden="true" style="transition:fill 0.16s ease;">
       <style>
         .dog-bob{animation:dogbob 0.62s ease-in-out infinite;}
         .dog-tail{transform-origin:23px 8.5px;transform-box:view-box;animation:dogwag 0.42s ease-in-out infinite alternate;}
@@ -209,7 +243,7 @@
       </g>
     </svg>
   </div>
-  <div class="meta lower">v 0.1 / web audio</div>
+  <div class="meta lower">mam instruments</div>
 </header>
 
 <main>
@@ -231,14 +265,14 @@
 
   <div class="row">
     <section class="col">
-      <div class="sec-head"><span class="lower">tonart</span><span style="display:flex;align-items:center;gap:10px;"><div class="toggle" id="tonartAutoToggle"><div class="dot"></div></div><input type="range" min="2" max="60" value="20" class="pslider" id="pTonartAutoRate" style="width:80px;"><span class="lbl lower">auto · <span id="vTonartAutoRate">20</span>s</span></span></div>
+      <div class="sec-head"><span class="lower">tonart</span><span style="display:flex;align-items:center;gap:10px;"><span class="lbl lower">zufall</span><div class="toggle" id="tonartAutoToggle"><div class="dot"></div></div><input type="range" min="2" max="60" value="20" class="pslider" id="pTonartAutoRate" style="width:80px;"><span class="lbl lower"><span id="vTonartAutoRate">20</span>s</span></span></div>
       <div class="sec-body">
         <div class="keyrow" id="keys"></div>
       </div>
     </section>
 
     <section class="col">
-      <div class="sec-head"><span class="lower">skala</span><span style="display:flex;align-items:center;gap:10px;"><div class="toggle" id="skalaAutoToggle"><div class="dot"></div></div><input type="range" min="2" max="60" value="30" class="pslider" id="pSkalaAutoRate" style="width:80px;"><span class="lbl lower">auto · <span id="vSkalaAutoRate">30</span>s</span></span></div>
+      <div class="sec-head"><span class="lower">skala</span><span style="display:flex;align-items:center;gap:10px;"><span class="lbl lower">zufall</span><div class="toggle" id="skalaAutoToggle"><div class="dot"></div></div><input type="range" min="2" max="60" value="30" class="pslider" id="pSkalaAutoRate" style="width:80px;"><span class="lbl lower"><span id="vSkalaAutoRate">30</span>s</span></span></div>
       <div class="sec-body">
         <div class="scaleRow" id="scales"></div>
       </div>
@@ -277,7 +311,7 @@
   </section>
 
   <section style="margin-bottom:14px;">
-    <div class="sec-head"><span class="lower">klangformung</span><span style="display:flex;align-items:center;gap:10px;"><div class="toggle" id="driftToggle"><div class="dot"></div></div><input type="range" min="0" max="100" value="50" class="pslider" id="pDriftDepth" style="width:80px;"><span class="lbl lower">drift · <span id="vDriftDepth">50</span></span></span></div>
+    <div class="sec-head"><span class="lower">klangformung</span><span style="display:flex;align-items:center;gap:10px;"><span class="lbl lower">drift</span><div class="toggle" id="driftToggle"><div class="dot"></div></div><input type="range" min="0" max="100" value="50" class="pslider" id="pDriftDepth" style="width:80px;"><span class="lbl lower"><span id="vDriftDepth">50</span></span></span></div>
     <div class="sec-body">
       <div class="pgrid" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr));">
         <div class="pcol">
@@ -334,7 +368,7 @@
 
   <div class="row" style="padding:0 14px;">
     <section class="col" style="border:0.5px solid var(--sep);">
-      <div class="sec-head"><span class="lower">oszilloskop</span><span class="lbl lower">x/y · lissajous</span></div>
+      <div class="sec-head"><span class="lower">oszilloskop</span><span class="lbl lower">x · y</span></div>
       <div class="sec-body" style="padding:0;">
         <canvas id="scope" width="600" height="180"></canvas>
       </div>
@@ -346,7 +380,7 @@
       </div>
     </section>
     <section class="col" style="border:0.5px solid var(--sep);">
-      <div class="sec-head"><span class="lower">vu meter</span><span class="lbl lower">stereo · analog</span></div>
+      <div class="sec-head"><span class="lower">meter</span><span class="lbl lower">summe</span></div>
       <div class="sec-body" style="padding:0;">
         <canvas id="vumeter" width="600" height="180"></canvas>
       </div>
@@ -356,20 +390,50 @@
 </main>
 
 <footer>
-  <div class="fstatus lower"><span>status</span> · <b id="status">bereit</b><span class="masterMeter"><span class="mmfill" id="masterMeterFill"></span></span></div>
-  <div style="display:flex;gap:6px;">
-    <button class="fbtn play lower" id="playBtn" title="play" aria-label="play" style="padding:0 14px;display:inline-flex;align-items:center;justify-content:center;">
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" stroke="none" aria-hidden="true"><polygon points="2,1 11,6 2,11"/></svg>
-    </button>
-    <button class="fbtn lower on" id="stopBtn" title="stop" aria-label="stop" style="padding:0 14px;display:inline-flex;align-items:center;justify-content:center;">
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" stroke="none" aria-hidden="true"><rect x="2" y="2" width="8" height="8"/></svg>
-    </button>
+  <div class="footer-main">
+    <div class="fstatus lower"><span>status</span> · <b id="status">bereit</b><span class="masterMeter"><span class="mmfill" id="masterMeterFill"></span></span></div>
+    <div style="display:flex;gap:6px;">
+      <button class="fbtn play lower" id="playBtn" title="play" aria-label="play" style="padding:0 14px;display:inline-flex;align-items:center;justify-content:center;">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" stroke="none" aria-hidden="true"><polygon points="2,1 11,6 2,11"/></svg>
+      </button>
+      <button class="fbtn lower on" id="stopBtn" title="stop" aria-label="stop" style="padding:0 14px;display:inline-flex;align-items:center;justify-content:center;">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" stroke="none" aria-hidden="true"><rect x="2" y="2" width="8" height="8"/></svg>
+      </button>
+    </div>
+    <div class="fstatus lower"><span id="layerCount">0</span> aktive ebenen · master <span id="mVol">0.7</span></div>
   </div>
-  <div class="fstatus lower"><span id="layerCount">0</span> aktive ebenen · master <span id="mVol">0.7</span></div>
+  <div class="footer-shortcuts lower">
+    <span class="fsc"><kbd>space</kbd> play / stop</span>
+    <span class="fsc"><kbd>r</kbd> tonart zufall</span>
+    <span class="fsc"><kbd>m</kbd> auto-tonart</span>
+    <span class="fsc"><kbd>s</kbd> auto-skala</span>
+    <span class="fsc"><kbd>1</kbd>–<kbd>8</kbd> layer an/aus</span>
+  </div>
 </footer>
 
 <script>
 (()=>{
+  // ====== browser capability check ======
+  (function checkCompat(){
+    const missing = [];
+    if(!window.AudioContext && !window.webkitAudioContext) missing.push('Web Audio API');
+    else {
+      try {
+        const tmp = new (window.AudioContext||window.webkitAudioContext)();
+        if(typeof tmp.createStereoPanner !== 'function') missing.push('StereoPanner');
+        if(typeof tmp.createConvolver   !== 'function') missing.push('ConvolverNode');
+        tmp.close();
+      } catch(e){ missing.push('Web Audio API'); }
+    }
+    if(typeof CSS === 'undefined' || !CSS.supports('transform-box','view-box')) missing.push('CSS transform-box');
+    if(missing.length){
+      const w = document.createElement('div');
+      w.id = 'compatWarn';
+      w.innerHTML = `<h2>browser nicht unterstützt</h2><p>folgende funktionen fehlen: <b>${missing.join(', ')}</b><br><br>bitte verwende einen aktuellen chromium- oder firefox-browser.</p>`;
+      document.body.prepend(w);
+    }
+  })();
+
   // ====== state ======
   const NOTE_NAMES = ['c','c#','d','d#','e','f','f#','g','g#','a','a#','h'];
   const SCALES = {
@@ -416,6 +480,7 @@
   let odIn=null, odDry=null, odWet=null, odShaper=null, odPost=null;
   let rmIn=null, rmDry=null, rmWet=null, rmCarrier=null, rmDepth=null, rmRing=null, rmPost=null;
   let delIn=null, delNode=null, delFb=null, delLp=null, delWow=null, delWowG=null, delWet=null, delDry=null, delPost=null;
+  let dcHp=null;
   let limiter=null, scopeL=null, scopeR=null;
   let tiltLow=null, tiltHi=null, widthScale=null;
   let shimRect=null, shimHp=null, shimLp=null, shimAmt=null, shimDelay=null;
@@ -448,7 +513,9 @@
     rebuildShaper();
     odIn.connect(odDry); odDry.connect(odPost);
     odIn.connect(odShaper); odShaper.connect(odWet); odWet.connect(odPost);
-    master.connect(odIn);
+    dcHp = actx.createBiquadFilter(); dcHp.type='highpass'; dcHp.frequency.value=20; dcHp.Q.value=0.5;
+    master.connect(dcHp);
+    dcHp.connect(odIn);
 
     // tape-delay
     delIn = actx.createGain();
@@ -1228,6 +1295,7 @@
     playBtn.classList.add('on');
     stopBtn.classList.remove('on');
     statusEl.textContent = 'läuft';
+    document.title = '▶ massive ambient machine 3000';
     Object.keys(state.layers).forEach(id=>{ if(state.layers[id].on) startLayer(id); });
   }
   function stopPlay(){
@@ -1236,6 +1304,7 @@
     playBtn.classList.remove('on');
     stopBtn.classList.add('on');
     statusEl.textContent = 'gestoppt';
+    document.title = 'massive ambient machine 3000';
     Object.keys(state.layers).forEach(id=> stopLayerNodes(id));
   }
   playBtn.addEventListener('click', startPlay);
@@ -1575,6 +1644,8 @@
       const p = peakOf(analyser);
       smoothMaster = Math.max(p, smoothMaster*0.9);
       if(masterMeterFill) masterMeterFill.style.width = Math.min(100, smoothMaster*120) + '%';
+      const dog = document.getElementById('dogSvg');
+      if(dog) dog.style.fill = smoothMaster > 0.18 ? '#ff616b' : '#dcdcdc';
     }
   }
   tickMeters();
@@ -1746,25 +1817,73 @@
   document.getElementById('presetImport').addEventListener('click',()=>{
     document.getElementById('presetFile').click();
   });
+  function isValidPreset(p){
+    if(!p || typeof p !== 'object') return false;
+    const numKeys = ['rev','room','tempo','rand','swing','density','drive','odMix','rmFreq','rmMix','delTime','delFb','delMix','tilt','width','shim'];
+    for(const k of numKeys){ if(p[k]!==undefined && typeof p[k]!=='number') return false; }
+    if(p.layers){
+      if(typeof p.layers !== 'object') return false;
+      for(const [,v] of Object.entries(p.layers)){
+        if(typeof v !== 'object') return false;
+        if(v.vol!==undefined && (typeof v.vol!=='number'||v.vol<0||v.vol>2)) return false;
+        if(v.oct!==undefined && (typeof v.oct!=='number'||v.oct<-4||v.oct>4)) return false;
+      }
+    }
+    return true;
+  }
   document.getElementById('presetFile').addEventListener('change',(e)=>{
     const f = e.target.files[0]; if(!f) return;
     const r = new FileReader();
     r.onload = ()=>{
       try{
         const obj = JSON.parse(r.result);
+        if(typeof obj !== 'object' || obj === null) throw new Error('invalid');
         const m = loadPresetMap();
-        Object.keys(obj).forEach(k=>{ m[k]=obj[k]; });
+        let imported = 0;
+        Object.entries(obj).forEach(([k,v])=>{
+          const data = v && v.current ? v.current : v;
+          if(isValidPreset(data)){ m[k]=data; imported++; }
+        });
+        if(imported === 0){ alert('Keine gültigen Presets in der Datei gefunden.'); return; }
         savePresetMap(m);
         refreshPresetList();
-      }catch(err){}
+      }catch(err){ alert('Ungültige Preset-Datei.'); }
     };
     r.readAsText(f);
     e.target.value='';
   });
   refreshPresetList();
 
+  // ====== keyboard shortcuts ======
+  document.addEventListener('keydown', e => {
+    if(e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+    if(e.key === ' '){ e.preventDefault(); state.playing ? stopPlay() : startPlay(); }
+    else if(e.key === 'r' || e.key === 'R'){ state.root = Math.floor(Math.random()*12); renderKeys(); renderHz(); renderPiano(); onKeyOrScaleChange(); }
+    else if(e.key === 'm' || e.key === 'M'){ tonartAutoToggle.click(); }
+    else if(e.key === 's' || e.key === 'S'){ skalaAutoToggle.click(); }
+    else if(e.key >= '1' && e.key <= '8'){
+      const id = layerDefs[parseInt(e.key)-1]?.id;
+      if(id) document.querySelector(`.layer[data-id="${id}"] .toggle`)?.click();
+    }
+  });
+
+  // ====== session autosave ======
+  const SSTORE = 'mam3000:session';
+  function saveSession(){ try{ localStorage.setItem(SSTORE, JSON.stringify(snapshotState())); }catch(e){} }
+  setInterval(saveSession, 30000);
+  window.addEventListener('pagehide', saveSession);
+
+  // ====== visibility / tab-switch ======
+  document.addEventListener('visibilitychange', () => {
+    if(!actx) return;
+    if(document.hidden){ actx.suspend(); }
+    else if(state.playing){ actx.resume(); }
+  });
+
   // init
   renderKeys(); renderScales(); renderPiano(); renderHz(); updateLayerCount();
+  const _savedSession = (()=>{ try{ return JSON.parse(localStorage.getItem(SSTORE)); }catch(e){ return null; } })();
+  if(_savedSession) applyPreset(_savedSession);
 })();
 </script>
 
