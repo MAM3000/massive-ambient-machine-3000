@@ -3,6 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="generativer ambient-synthesizer im browser — 8 layer, master-fx, drift-modulation, presets. mam instruments.">
+<meta name="theme-color" content="#141414">
+<meta property="og:type" content="website">
+<meta property="og:title" content="massive ambient machine 3000">
+<meta property="og:description" content="generativer ambient-synthesizer im browser — 8 layer, master-fx, drift-modulation, presets.">
+<meta property="og:image" content="og-preview.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="massive ambient machine 3000">
+<meta name="twitter:description" content="generativer ambient-synthesizer im browser — 8 layer, master-fx, drift-modulation, presets.">
+<meta name="twitter:image" content="og-preview.png">
 <title>massive ambient machine 3000</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 20'><path fill='%23ff616b' d='M0.5 10 L2 8 L4 7 L4.3 3.5 L5.7 3 L6 7 L7.5 7.5 L22 7.5 L23 9 L23 13 L21 13 L21 17.5 L18.8 17.5 L18.8 13 L14.5 13 L14.5 17.5 L12.4 17.5 L12.4 13 L8.4 13 L8.4 17.5 L6.2 17.5 L6.2 13 L2.5 12.5 L0.5 11 Z M23 8.5 L26 5.5 L29 3 L28 6.5 L25 10.5 Z'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -199,6 +209,37 @@
   .sm{font-size:9px;color:var(--t2);letter-spacing:0.16em;}
   .accv{color:var(--acc);}
 
+  /* welcome overlay */
+  #welcome{
+    position:fixed;inset:0;z-index:9998;
+    background:rgba(20,20,20,0.96);
+    display:none;align-items:center;justify-content:center;padding:30px;
+  }
+  #welcome.show{display:flex;}
+  #welcome .wcard{
+    max-width:440px;background:var(--bg1);border:0.5px solid var(--bg3);
+    padding:32px 30px;display:flex;flex-direction:column;gap:18px;
+  }
+  #welcome h2{color:var(--t0);font-size:13px;letter-spacing:0.22em;font-weight:400;text-transform:lowercase;}
+  #welcome p{color:var(--t1);font-size:10px;letter-spacing:0.16em;line-height:1.9;text-transform:lowercase;}
+  #welcome .wkbd{display:flex;flex-wrap:wrap;gap:10px;font-size:9px;color:var(--t2);letter-spacing:0.14em;}
+  #welcome .wkbd span{display:inline-flex;align-items:center;gap:5px;}
+  #welcome .wkbd kbd{
+    display:inline-flex;align-items:center;justify-content:center;
+    min-width:18px;height:17px;padding:0 5px;
+    border:0.5px solid var(--t2);border-radius:2px;
+    color:var(--t1);font-size:9px;font-family:inherit;letter-spacing:0;
+  }
+  #welcome .wbtn{
+    align-self:flex-start;margin-top:6px;
+    height:30px;padding:0 22px;
+    border:0.5px solid var(--acc);background:var(--acc);color:var(--bg0);
+    font:inherit;font-size:10px;letter-spacing:0.22em;text-transform:lowercase;
+    cursor:pointer;border-radius:2px;
+  }
+  #welcome .wcheck{display:flex;align-items:center;gap:8px;color:var(--t2);font-size:9px;letter-spacing:0.14em;cursor:pointer;}
+  #welcome .wcheck input{accent-color:var(--acc);}
+
   /* compat warning */
   #compatWarn{
     position:fixed;inset:0;z-index:9999;
@@ -222,6 +263,21 @@
 </style>
 </head>
 <body>
+
+<div id="welcome">
+  <div class="wcard">
+    <h2>massive ambient machine 3000</h2>
+    <p>generativer ambient-synthesizer mit acht klangschichten, master-fx und drift-modulation. <br>spielt in echtzeit im browser — kopfhörer empfohlen.</p>
+    <p style="color:var(--t2);">starte mit play oder einer der drei factory-presets <span style="color:var(--t1);">★ kauz · frieden · birke</span>.</p>
+    <div class="wkbd lower">
+      <span><kbd>space</kbd> play / stop</span>
+      <span><kbd>r</kbd> tonart zufall</span>
+      <span><kbd>1</kbd>–<kbd>8</kbd> layer an/aus</span>
+    </div>
+    <button class="wbtn" id="welcomeStart">loslegen</button>
+    <label class="wcheck lower"><input type="checkbox" id="welcomeDontShow" checked> nicht mehr zeigen</label>
+  </div>
+</div>
 
 <header>
   <div class="brand">
@@ -259,6 +315,7 @@
       <button id="presetDel" class="ctrlbtn lower">löschen</button>
       <button id="presetExport" class="ctrlbtn lower">export</button>
       <button id="presetImport" class="ctrlbtn lower">import</button>
+      <button id="presetShare" class="ctrlbtn lower">link teilen</button>
       <input type="file" id="presetFile" accept="application/json" style="display:none;">
     </div>
   </section>
@@ -1818,6 +1875,33 @@
   document.getElementById('presetImport').addEventListener('click',()=>{
     document.getElementById('presetFile').click();
   });
+  // url-share: encode current state into hash, copy to clipboard
+  function encodeShare(obj){
+    const json = JSON.stringify(obj);
+    return btoa(unescape(encodeURIComponent(json))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  }
+  function decodeShare(s){
+    try{
+      const b64 = s.replace(/-/g,'+').replace(/_/g,'/');
+      const pad = b64.length % 4 ? '='.repeat(4 - b64.length%4) : '';
+      return JSON.parse(decodeURIComponent(escape(atob(b64+pad))));
+    }catch(e){ return null; }
+  }
+  document.getElementById('presetShare').addEventListener('click',async ()=>{
+    const btn = document.getElementById('presetShare');
+    const code = encodeShare(snapshotState());
+    const url = location.origin + location.pathname + '#s=' + code;
+    const orig = btn.textContent;
+    try{
+      await navigator.clipboard.writeText(url);
+      btn.textContent = 'link kopiert';
+    }catch(e){
+      prompt('link zum kopieren:', url);
+      btn.textContent = orig;
+      return;
+    }
+    setTimeout(()=>{ btn.textContent = orig; }, 1600);
+  });
   function isValidPreset(p){
     if(!p || typeof p !== 'object') return false;
     const numKeys = ['rev','room','tempo','rand','swing','density','drive','odMix','rmFreq','rmMix','delTime','delFb','delMix','tilt','width','shim'];
@@ -1881,10 +1965,35 @@
     else if(state.playing){ actx.resume(); }
   });
 
+  // ====== welcome overlay ======
+  (function welcomeInit(){
+    const WSEEN = 'mam3000:seen-welcome';
+    const overlay = document.getElementById('welcome');
+    if(!overlay) return;
+    let seen = false;
+    try{ seen = localStorage.getItem(WSEEN) === '1'; }catch(e){}
+    // url-shared link → skip welcome (user already knows what they're getting)
+    const hasShared = /^#s=/.test(location.hash);
+    if(!seen && !hasShared) overlay.classList.add('show');
+    document.getElementById('welcomeStart').addEventListener('click', ()=>{
+      const dont = document.getElementById('welcomeDontShow').checked;
+      if(dont){ try{ localStorage.setItem(WSEEN,'1'); }catch(e){} }
+      overlay.classList.remove('show');
+    });
+  })();
+
   // init
   renderKeys(); renderScales(); renderPiano(); renderHz(); updateLayerCount();
-  const _savedSession = (()=>{ try{ return JSON.parse(localStorage.getItem(SSTORE)); }catch(e){ return null; } })();
-  if(_savedSession) applyPreset(_savedSession);
+  // url-hash takes priority over saved session
+  const _hashMatch = location.hash.match(/^#s=(.+)$/);
+  const _shared = _hashMatch ? decodeShare(_hashMatch[1]) : null;
+  if(_shared && isValidPreset(_shared)){
+    applyPreset(_shared);
+    history.replaceState(null,'',location.pathname);
+  } else {
+    const _savedSession = (()=>{ try{ return JSON.parse(localStorage.getItem(SSTORE)); }catch(e){ return null; } })();
+    if(_savedSession) applyPreset(_savedSession);
+  }
 })();
 </script>
 
