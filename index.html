@@ -553,7 +553,7 @@
   function ensureAudio(){
     if(actx) return;
     actx = new (window.AudioContext||window.webkitAudioContext)();
-    master = actx.createGain(); master.gain.value=0.7;
+    master = actx.createGain(); master.gain.value=0;
     dryGain = actx.createGain();
     wetGain = actx.createGain();
     conv = actx.createConvolver();
@@ -1345,6 +1345,9 @@
   const playBtn = document.getElementById('playBtn');
   const statusEl = document.getElementById('status');
   const stopBtn = document.getElementById('stopBtn');
+  const MASTER_LEVEL = 0.7;
+  const FADE_S = 0.2;
+  let stopFadeTimer = null;
   async function startPlay(){
     ensureAudio();
     if(actx.state==='suspended') await actx.resume();
@@ -1354,6 +1357,11 @@
     stopBtn.classList.remove('on');
     statusEl.textContent = 'läuft';
     document.title = '▶ massive ambient machine 3000';
+    if(stopFadeTimer){ clearTimeout(stopFadeTimer); stopFadeTimer = null; }
+    const now = actx.currentTime;
+    master.gain.cancelScheduledValues(now);
+    master.gain.setValueAtTime(master.gain.value, now);
+    master.gain.linearRampToValueAtTime(MASTER_LEVEL, now + FADE_S);
     Object.keys(state.layers).forEach(id=>{ if(state.layers[id].on) startLayer(id); });
   }
   function stopPlay(){
@@ -1363,7 +1371,15 @@
     stopBtn.classList.add('on');
     statusEl.textContent = 'gestoppt';
     document.title = 'massive ambient machine 3000';
-    Object.keys(state.layers).forEach(id=> stopLayerNodes(id));
+    const now = actx.currentTime;
+    master.gain.cancelScheduledValues(now);
+    master.gain.setValueAtTime(master.gain.value, now);
+    master.gain.linearRampToValueAtTime(0, now + FADE_S);
+    if(stopFadeTimer) clearTimeout(stopFadeTimer);
+    stopFadeTimer = setTimeout(()=>{
+      Object.keys(state.layers).forEach(id=> stopLayerNodes(id));
+      stopFadeTimer = null;
+    }, FADE_S*1000 + 20);
   }
   playBtn.addEventListener('click', startPlay);
   stopBtn.addEventListener('click', stopPlay);
