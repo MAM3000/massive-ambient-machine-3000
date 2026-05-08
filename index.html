@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="generativer ambient-synthesizer im browser — 8 layer, master-fx, drift-modulation, presets. mam instruments.">
 <meta name="theme-color" content="#141414">
 <meta property="og:type" content="website">
@@ -27,7 +27,8 @@
     --bw:0;
   }
   *{box-sizing:border-box;margin:0;padding:0;}
-  html,body{background:var(--bg0);color:var(--t0);font-family:'IBM Plex Mono',monospace;font-weight:300;font-size:11px;letter-spacing:0.02em;-webkit-font-smoothing:antialiased;}
+  html,body{background:var(--bg0);color:var(--t0);font-family:'IBM Plex Mono',monospace;font-weight:300;font-size:11px;letter-spacing:0.02em;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;}
+  button,.toggle,.octb,.fbtn,.ctrlbtn,input[type=range]{touch-action:manipulation;}
   body{min-height:100vh;padding:0 0 80px 0;}
   button,input,select{font-family:inherit;font-size:inherit;font-weight:inherit;color:inherit;background:transparent;border:none;outline:none;cursor:pointer;letter-spacing:inherit;}
   .lower{text-transform:uppercase;}
@@ -38,6 +39,9 @@
     position:fixed;top:0;left:0;right:0;z-index:100;
     border-bottom:var(--bw) solid var(--sep);
     padding:14px 22px;
+    padding-top:max(14px,env(safe-area-inset-top));
+    padding-left:max(22px,env(safe-area-inset-left));
+    padding-right:max(22px,env(safe-area-inset-right));
     display:flex;align-items:center;justify-content:space-between;
     background:var(--bg0);
   }
@@ -177,6 +181,9 @@
     border-top:var(--bw) solid var(--sep);
     background:var(--bg0);
     padding:10px 22px 8px;
+    padding-bottom:max(8px,env(safe-area-inset-bottom));
+    padding-left:max(22px,env(safe-area-inset-left));
+    padding-right:max(22px,env(safe-area-inset-right));
     display:flex;flex-direction:column;
     gap:7px;
   }
@@ -250,15 +257,97 @@
   #compatWarn h2{color:var(--t0);font-size:13px;letter-spacing:0.22em;font-weight:400;}
   #compatWarn p{color:var(--t1);font-size:10px;letter-spacing:0.16em;max-width:400px;line-height:1.8;}
 
+  /* tablet */
+  @media(max-width:1000px){
+    .pgrid{grid-template-columns:repeat(3,1fr) !important;}
+    .layers{grid-template-columns:repeat(3,1fr);}
+  }
+
   /* mobile */
-  @media(max-width:800px){
-    .layers{grid-template-columns:repeat(2,1fr);}
-    .pgrid{grid-template-columns:repeat(2,1fr) !important;}
-    input[type=range]{height:28px;}
-    .lslitem{grid-template-columns:40px 1fr 26px;}
-    header{padding:10px 14px;}
-    main{padding:14px;padding-top:62px;}
-    footer{padding:8px 14px 6px;}
+  @media(max-width:760px){
+    /* layout — sections stack */
+    main{padding:12px;padding-top:56px;padding-bottom:90px;max-width:100%;}
+    .row{flex-direction:column;gap:10px;margin-bottom:10px;}
+    .col{width:100%;}
+
+    /* section heads wrap */
+    .sec-head{flex-wrap:wrap;gap:6px;padding:8px 12px;}
+    .sec-head > span:first-child{font-size:10px;letter-spacing:0.18em;}
+    .sec-head .lbl{font-size:9px;letter-spacing:0.14em;}
+
+    /* grids */
+    .layers{grid-template-columns:repeat(2,1fr);gap:8px;}
+    .pgrid{grid-template-columns:repeat(2,1fr) !important;gap:10px;}
+    .pcol{padding:8px 10px;gap:6px;}
+    .ptop{font-size:8.5px;letter-spacing:0.14em;}
+
+    /* layer card more compact */
+    .layer{padding:10px;gap:8px;}
+    .layer .lname{font-size:9.5px;letter-spacing:0.14em;}
+    .lbody{gap:8px;}
+    .knobwrap canvas.knob{width:42px !important;height:42px !important;}
+    .lslitem{grid-template-columns:34px 1fr 22px;gap:6px;font-size:8.5px;letter-spacing:0.12em;}
+    .lsl{gap:5px;margin-top:2px;}
+
+    /* touch-friendly sliders */
+    .pslider{height:26px;background:transparent;padding:0;}
+    .pslider::-webkit-slider-runnable-track{height:3px;background:var(--bg3);border-radius:1px;}
+    .pslider::-moz-range-track{height:3px;background:var(--bg3);border-radius:1px;}
+    .pslider::-webkit-slider-thumb{width:18px;height:18px;margin-top:-8px;}
+    .pslider::-moz-range-thumb{width:18px;height:18px;}
+
+    /* bigger touch targets */
+    .toggle{width:38px;height:20px;border-radius:10px;}
+    .toggle .dot{width:14px;height:14px;top:2px;left:2px;}
+    .layer.on .toggle .dot,.toggle.on .dot{left:21px;}
+    .octb{width:30px;height:28px;font-size:13px;}
+
+    /* visualizations stack and shrink */
+    canvas#wave,canvas#scope,canvas#vumeter{height:140px;}
+
+    /* tonart/skala buttons more touch-friendly */
+    .keyrow,.scaleRow{display:flex;flex-wrap:wrap;gap:4px;}
+    .keyrow > *,.scaleRow > *{min-height:30px;padding:0 10px;font-size:10px;}
+
+    /* tonart/skala header — toggle row wraps below title */
+    .sec-head > span:last-child{flex-basis:100%;justify-content:flex-end;}
+
+    /* preset row scrolls horizontally */
+    .sec-body[style*="flex-wrap"]{flex-wrap:nowrap !important;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+    .ctrlbtn{flex-shrink:0;}
+
+    /* header — hide secondary text */
+    header{padding:8px 12px;}
+    header .name{font-size:9px;letter-spacing:0.14em;}
+    header .meta{display:none;}
+    header .title{font-size:9px;letter-spacing:0.14em;}
+
+    /* footer — hide keyboard shortcuts on mobile */
+    footer{padding:8px 12px 8px;
+      padding-bottom:max(8px,env(safe-area-inset-bottom));}
+    .footer-shortcuts{display:none;}
+    .footer-main{gap:8px;}
+    .fstatus{font-size:9px;letter-spacing:0.12em;}
+    .masterMeter{width:80px;}
+
+    /* welcome overlay fits screen */
+    #welcome .wcard{max-width:100%;padding:24px 20px;gap:14px;}
+    #welcome h2{font-size:11px;}
+    #welcome p,#welcome .wkbd{font-size:9.5px;letter-spacing:0.12em;}
+
+    /* ios — prevent input zoom on focus */
+    input[type=text],input:not([type]){font-size:16px;}
+    /* but keep our mono ctrlbtn small */
+    input.ctrlbtn{font-size:10px;}
+
+    /* hz display smaller */
+    .hzdisp{font-size:12px;}
+  }
+
+  /* very narrow */
+  @media(max-width:380px){
+    .layers{grid-template-columns:1fr;}
+    .pgrid{grid-template-columns:1fr !important;}
   }
 </style>
 </head>
