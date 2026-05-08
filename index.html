@@ -1580,6 +1580,12 @@
   tickMeters();
 
   // ====== presets ======
+  const FACTORY_PRESETS = {
+    'kauz': {"root":7,"transp":0,"scaleName":"dorisch","rev":40,"room":100,"tempo":2,"rand":100,"swing":80,"density":60,"drive":100,"odMix":20,"rmFreq":2000,"rmMix":6,"delTime":130,"delFb":15,"delMix":25,"tilt":57,"width":100,"shim":12,"tonartAuto":false,"tonartAutoRate":20,"skalaAuto":false,"skalaAutoRate":30,"driftActive":true,"driftDepth":80,"layers":{"bass":{"vol":0.37,"oct":-3,"on":true,"spread":0,"prob":100},"drone":{"vol":0.55,"oct":-1,"on":true,"spread":70,"prob":66},"pad":{"vol":0.4,"oct":0,"on":true,"spread":50,"prob":100},"melodie":{"vol":0.3,"oct":0,"on":false,"spread":60,"prob":100},"arpeggio":{"vol":0.25,"oct":0,"on":false,"spread":70,"prob":100},"bells":{"vol":0.3,"oct":-1,"on":true,"spread":80,"prob":100},"pulse":{"vol":0.25,"oct":0,"on":true,"spread":100,"prob":100},"noise":{"vol":0.03,"oct":4,"on":true,"spread":100,"prob":100}}},
+    'frieden': {"root":5,"transp":0,"scaleName":"pentatonik","rev":71,"room":40,"tempo":13,"rand":100,"swing":100,"density":200,"drive":50,"odMix":50,"rmFreq":80,"rmMix":10,"delTime":1320,"delFb":23,"delMix":25,"tilt":30,"width":100,"shim":55,"tonartAuto":true,"tonartAutoRate":20,"skalaAuto":false,"skalaAutoRate":30,"driftActive":true,"driftDepth":100,"layers":{"bass":{"vol":0.45,"oct":-2,"on":true,"spread":0,"prob":100},"drone":{"vol":0.55,"oct":-2,"on":false,"spread":0,"prob":100},"pad":{"vol":0.4,"oct":0,"on":false,"spread":50,"prob":100},"melodie":{"vol":0.3,"oct":0,"on":true,"spread":60,"prob":100},"arpeggio":{"vol":0.25,"oct":0,"on":true,"spread":70,"prob":100},"bells":{"vol":0.3,"oct":-1,"on":true,"spread":80,"prob":100},"pulse":{"vol":0.25,"oct":0,"on":true,"spread":90,"prob":100},"noise":{"vol":0.03,"oct":4,"on":true,"spread":100,"prob":100}}},
+    'birke': {"root":2,"transp":0,"scaleName":"dur","rev":71,"room":100,"tempo":25,"rand":90,"swing":80,"density":60,"drive":30,"odMix":50,"rmFreq":80,"rmMix":0,"delTime":420,"delFb":35,"delMix":25,"tilt":0,"width":100,"shim":37,"tonartAuto":true,"tonartAutoRate":20,"skalaAuto":false,"skalaAutoRate":30,"driftActive":true,"driftDepth":80,"layers":{"bass":{"vol":0.45,"oct":-3,"on":true,"spread":0,"prob":100},"drone":{"vol":0.55,"oct":-2,"on":true,"spread":0,"prob":100},"pad":{"vol":0.4,"oct":-1,"on":true,"spread":50,"prob":100},"melodie":{"vol":0.3,"oct":0,"on":true,"spread":60,"prob":100},"arpeggio":{"vol":0.25,"oct":1,"on":true,"spread":70,"prob":100},"bells":{"vol":0.3,"oct":2,"on":true,"spread":80,"prob":100},"pulse":{"vol":0.25,"oct":3,"on":true,"spread":90,"prob":100},"noise":{"vol":0.1,"oct":3,"on":true,"spread":0,"prob":100}}},
+  };
+  const FPFX = '__factory__';
   const PSTORE = 'mam3000:presets';
   function loadPresetMap(){
     try{ return JSON.parse(localStorage.getItem(PSTORE)||'{}'); }catch(e){ return {}; }
@@ -1588,8 +1594,12 @@
   function refreshPresetList(){
     const m = loadPresetMap();
     const sel = document.getElementById('presetSel');
-    const names = Object.keys(m).sort();
-    sel.innerHTML = '<option value="">— preset —</option>' + names.map(n=>`<option value="${n}">${n}</option>`).join('');
+    const factoryOpts = Object.keys(FACTORY_PRESETS).map(n=>`<option value="${FPFX}${n}">★ ${n}</option>`).join('');
+    const userNames = Object.keys(m).sort();
+    const userOpts = userNames.map(n=>`<option value="${n}">${n}</option>`).join('');
+    sel.innerHTML = '<option value="">— preset —</option>'
+      + `<optgroup label="★ factory">${factoryOpts}</optgroup>`
+      + (userNames.length ? `<optgroup label="meine presets">${userOpts}</optgroup>` : '');
   }
   function snapshotState(){
     return {
@@ -1697,15 +1707,21 @@
   });
   document.getElementById('presetLoad').addEventListener('click',()=>{
     const sel = document.getElementById('presetSel');
-    const m = loadPresetMap();
-    if(sel.value && m[sel.value]) applyPreset(m[sel.value]);
+    if(!sel.value) return;
+    if(sel.value.startsWith(FPFX)){
+      applyPreset(FACTORY_PRESETS[sel.value.slice(FPFX.length)]);
+    } else {
+      const m = loadPresetMap();
+      if(m[sel.value]) applyPreset(m[sel.value]);
+    }
   });
   document.getElementById('presetSel').addEventListener('change',(e)=>{
-    document.getElementById('presetName').value = e.target.value || '';
+    const v = e.target.value || '';
+    document.getElementById('presetName').value = v.startsWith(FPFX) ? '' : v;
   });
   document.getElementById('presetDel').addEventListener('click',()=>{
     const sel = document.getElementById('presetSel');
-    if(!sel.value) return;
+    if(!sel.value || sel.value.startsWith(FPFX)) return;
     const m = loadPresetMap();
     delete m[sel.value];
     savePresetMap(m);
@@ -1714,7 +1730,13 @@
   document.getElementById('presetExport').addEventListener('click',()=>{
     const sel = document.getElementById('presetSel');
     const m = loadPresetMap();
-    const data = (sel.value && m[sel.value]) ? {[sel.value]:m[sel.value]} : {current:snapshotState()};
+    let data;
+    if(sel.value && sel.value.startsWith(FPFX)){
+      const name = sel.value.slice(FPFX.length);
+      data = {[name]: FACTORY_PRESETS[name]};
+    } else {
+      data = (sel.value && m[sel.value]) ? {[sel.value]:m[sel.value]} : {current:snapshotState()};
+    }
     const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
